@@ -29,14 +29,16 @@ class AdminAuthenticationForm(AdminAuthForm):
     def clean(self):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
-        message = self.error_messages['invalid_login']
 
         if username and password:
             self.user_cache = authenticate(username=username,
                                            password=password,
                                            request=self.request)
-            if self.user_cache is None:
-                raise forms.ValidationError(message)
-            elif not self.user_cache.is_active or not self.user_cache.is_staff:
-                raise forms.ValidationError(message)
+            if (self.user_cache is None or not self.user_cache.is_active 
+                    or not self.user_cache.is_staff):
+                raise forms.ValidationError(
+                    self.error_messages['invalid_login'],
+                    code='invalid_login',
+                    params={'username': self.username_field.verbose_name}
+                )
         return self.cleaned_data
